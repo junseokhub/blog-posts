@@ -1,0 +1,76 @@
+name: Sync posts to junseokhub.github.io
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout blog-posts
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout junseokhub.github.io
+        uses: actions/checkout@v4
+        with:
+          repository: junseokhub/junseokhub.github.io
+          token: ${{ secrets.PAT }}
+          path: main-repo
+          ref: master
+
+      - name: Inject commit dates and sync posts
+        run: |
+          rm -rf main-repo/src/blog/posts/
+          mkdir -p main-repo/src/blog/posts/
+
+          find . -name "*.md" -not -path "./.git/*" -not -path "./.github/*" -not -path "./main-repo/*" | while read file; do
+            echo "Processing: $file"
+            DATE=$(git log --follow -1 --format="%aI" -- "$file" 2>/dev/null)
+            if [ -z "$DATE" ]; then
+              DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            fi
+
+            DEST="main-repo/src/blog/posts/${file#./}"
+            echo "Destination: $DEST"
+            mkdir -p "$(dirname "$DEST")"
+
+            python3 .github/scripts/process_post.py "$DATE" "$file" "$DEST"
+            echo "Done: $file"
+          done
+
+      - name: Sync images
+        run: |
+          rm -rf main-repo/public/blog/images/
+          mkdir -p main-repo/public/blog/images/
+
+          find . -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.gif" -o -name "*.webp" -o -name "*.svg" \) \
+            -not -path "./.git/*" -not -path "./.github/*" -not -path "./main-repo/*" | while read file; do
+            # images/ 루트 폴더는 공용 이미지 → /blog/images/ 바로 아래로 복사
+            if echo "$file" | grep -q "^\./images/"; then
+              DEST="main-repo/public/blog/images/${file#./images/}"
+            else
+              DEST="main-repo/public/blog/images/${file#./}"
+            fi
+            mkdir -p "$(dirname "$DEST")"
+            cp "$file" "$DEST"
+          done
+
+      - name: Sync CATEGORIES.json
+        run: |
+          mkdir -p main-repo/src/blog/data/
+          cp CATEGORIES.json main-repo/src/blog/data/categories.json
+
+      - name: Commit and push
+        working-directory: main-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "=== posts directory ==="
+          find src/blog/posts -type f 2>/dev/null || echo "(empty)"
+          git add -A
+          git status
+          git diff --staged --quiet || git commit -m "sync: update blog posts"
+          git push
