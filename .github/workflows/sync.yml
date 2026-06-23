@@ -28,7 +28,7 @@ jobs:
 
           find . -name "*.md" -not -path "./.git/*" -not -path "./.github/*" -not -path "./main-repo/*" | while read file; do
             echo "Processing: $file"
-            DATE=$(git log --follow -1 --format="%aI" -- "$file" 2>/dev/null)
+            DATE=$(git log --follow --format="%aI" -- "$file" 2>/dev/null | tail -1)
             if [ -z "$DATE" ]; then
               DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
             fi
