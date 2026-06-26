@@ -1,7 +1,7 @@
 ---
 title: [Spring] Gradle MSA에서 모듈을 어떻게 해야할까?
 thumbnail: /blog/images/spring.png
-date: 2026-06-18T15:13:00+0900
+date: 2026-06-18
 ---
 
 SpringBoot + Gradle로 MSA를 구성할 때 가장 먼저 맞닥뜨리는 문제가 있다.

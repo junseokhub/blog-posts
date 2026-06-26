@@ -1,7 +1,7 @@
 ---
 title: [Spring] 스프링 애플리케이션 이벤트 (ApplicationEventPublisher)
 thumbnail: /blog/images/spring.png
-date: 2026-06-20T19:27:13+0900
+date: 2026-06-20
 ---
 
 ## Intro

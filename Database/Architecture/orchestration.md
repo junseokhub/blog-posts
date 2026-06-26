@@ -1,7 +1,7 @@
 ---
 title: [DB] Outbox vs CDC vs Saga
-thumbnail: /blog/images/spring.png
-date: 2026-06-24T23:11:57+0900
+thumbnail: /blog/images/db_architecture.png
+date: 2026-06-24
 ---
 
 # Outbox vs CDC vs Saga
